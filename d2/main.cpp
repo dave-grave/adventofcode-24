@@ -3,15 +3,19 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <set>
 
 using namespace std;
 
 int main()
 {
+    // read in file
     ifstream fin("input.txt");
-
     string line;
     int num_safe = 0;
+
+    // parse thru each row of the input file
     while (getline(fin, line))
     {
         istringstream ss(line);
@@ -21,29 +25,48 @@ int main()
             nums.push_back(stoi(num));
         }
 
-        bool is_increasing = true
-                                 ? (3 >= nums[1] - nums[0]) && (nums[1] - nums[0] >= 1)
-                                 : false;
-        bool is_decreasing = true
-                                 ? (-3 <= nums[1] - nums[0]) && (nums[1] - nums[0] <= -1)
-                                 : false;
-        for (int i = 0; i < nums.size() - 1; i++)
+        // create set of differences
+        // create sets of allowed differences, then compare
+        set<int> diff;
+        set<int> inc_diff = {1, 2, 3};
+        set<int> dec_diff = {-1, -2, -3};
+
+        // find consecutive differences of each row
+        for (int i = 1; i < nums.size(); i++)
         {
-            int difference = nums[i + 1] - nums[i];
-            if (!(is_increasing && difference >= 1 && difference <= 3))
-            {
-                is_increasing = false;
-            }
-            if (!(is_decreasing && difference <= -1 && difference >= -3))
-            {
-                is_decreasing = false;
-            }
+            diff.insert(nums[i] - nums[i - 1]);
         }
 
-        if (is_increasing || is_decreasing)
+        // check if diff is a subset of inc_diff or dec_diff
+        if (includes(inc_diff.begin(), inc_diff.end(), diff.begin(), diff.end()) || includes(dec_diff.begin(), dec_diff.end(), diff.begin(), diff.end()))
         {
             num_safe++;
         }
+        // take an element out of nums and check if nums is safe again
+        else
+        {
+            bool is_safe = false;
+            for (int i = 0; i < nums.size(); i++)
+            {
+                vector<int> nums_copy = nums;
+                nums_copy.erase(nums_copy.begin() + i);
+
+                diff.clear();
+                for (int i = 1; i < nums_copy.size(); i++)
+                {
+                    diff.insert(nums_copy[i] - nums_copy[i - 1]);
+                }
+
+                if (includes(inc_diff.begin(), inc_diff.end(), diff.begin(), diff.end()) || includes(dec_diff.begin(), dec_diff.end(), diff.begin(), diff.end()))
+                {
+                    is_safe = true;
+                }
+            }
+            if (is_safe)
+            {
+                num_safe++;
+            }
+        }
     }
-    cout << "num safe " << num_safe;
+    cout << "total number of safe rows: " << num_safe << endl;
 }
