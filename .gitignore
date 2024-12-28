@@ -6,3 +6,4 @@ main
 
 .prettierrc
 
+__pycache__
